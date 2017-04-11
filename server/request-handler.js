@@ -11,7 +11,13 @@ var defaultCorsHeaders = {
   'access-control-max-age': 10 // Seconds.
 };
 
-var storage = [];
+var storage = [
+  {
+    username: 'josh',
+    text: 'welcome',
+    roomname: 'lobby'
+  }
+];
 
 var requestHandler = function(request, response) {
 
@@ -21,7 +27,12 @@ var requestHandler = function(request, response) {
   var headers = defaultCorsHeaders;
   var statusCode = 404;
 
-  if (request.url === '/classes/messages' ) {
+  if (request.method === 'OPTIONS') {
+    response.writeHead(200, headers);
+    response.end();
+  }
+
+  if (request.url === '/classes/messages' || request.url === '/classes/room') {
     if (request.method === 'GET') {
       statusCode = 200;
       resultObject.results = storage;
@@ -32,11 +43,18 @@ var requestHandler = function(request, response) {
       var body = [];
       request.on('data', function (chunk) {
         body.push(chunk);
-      })
-      .on('end', function () {
+      });
+      request.on('end', function () {
+        console.log('body before concat: ', body);
+        // console.log('type of element: ', typeof body[0]);
         body = Buffer.concat(body).toString();
         storage.push(JSON.parse(body));
+        console.log('storage: ', storage);
       });
+    }
+
+    if (request) {
+
     }
   }
 
@@ -44,4 +62,6 @@ var requestHandler = function(request, response) {
   response.end(JSON.stringify(resultObject));
 };
 
-module.exports = requestHandler;
+exports.requestHandler = requestHandler;
+exports.storage = storage;
+exports.defaultCorsHeaders = defaultCorsHeaders;
